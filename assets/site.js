@@ -179,15 +179,19 @@
       line(function (t) { return y(P, t); }, '#7a2a2a');
       line(function (t) { return y(S, t); }, '#3d6d8a');
       line(function (t) { return y(P, t) + y(S, t); }, '#e8c98f');
+      var ss = 0, n = 400; for (var k = 0; k < n; k++) { var tt = k / n * 2, v = y(P, tt) + y(S, tt); ss += v * v; }
+      var res = Math.sqrt(ss / n) / (P.a / Math.SQRT2);   // 殘餘訊號相對污染強度
+      var m = box.querySelector('#p1res'); if (m) m.innerHTML = '殘餘訊號：<strong>' + Math.round(res * 100) + '%</strong>（降到 10% 以下即可）';
+      draw.res = res;
     }
     function read() { S.f = +box.querySelector('#p1f').value; S.ph = +box.querySelector('#p1p').value; S.a = +box.querySelector('#p1a').value;
       box.querySelector('#p1pv').textContent = S.ph + '°'; box.querySelector('#p1av').textContent = S.a.toFixed(2); draw(); }
     box.querySelectorAll('select,input').forEach(function (i) { i.oninput = read; });
     read();
-    msg('紅：污染波形　藍：您發射的波形　金：合成結果');
+    var meter = el('p', { id: 'p1res' }); box.insertBefore(meter, btn); draw();
+    msg('紅：污染波形　藍：您發射的波形　金：合成結果。先讓頻率吻合，再調相位與振幅，觀察殘餘訊號下降。');
     btn.onclick = function () {
-      var phOk = Math.abs(((S.ph - (P.ph + 180)) % 360 + 540) % 360 - 180) <= 10;
-      if (S.f === P.f && phOk && Math.abs(S.a - P.a) <= 0.1) success(1, '污染波形已被中和。', '中和・01');
+      if (draw.res <= 0.1) success(1, '污染波形已被中和。', '中和・01');
       else msg('合成波形尚未歸零。頻率、相位、振幅都必須吻合。', 'bad');
     };
   }
